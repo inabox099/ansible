@@ -1,0 +1,66 @@
+//
+// named.conf
+//
+// Role: Recursive DNS
+
+include "/etc/bind/rndc.key";
+
+acl allow-update {
+	localhost;
+	key "rndc";
+};
+
+acl axfr {
+	localhost;
+	# <PUT SLAVE IP HERE>;
+};
+
+acl myNetwork {
+	192.168.0.0/24;
+};
+
+options {
+	listen-on port 53 { any; };
+	listen-on-v6 port 53 { any; };
+	allow-query     { any; };
+
+	directory 			"/var/named";
+	dump-file 			"/var/named/data/cache_dump.db";
+	statistics-file 	"/var/named/data/named_stats.txt";
+	memstatistics-file 	"/var/named/data/named_mem_stats.txt";
+
+	# May restict allow-query to private network
+	#  allow-query     { myNetwork; };
+
+	recursion yes;
+
+	# do not check dnssec
+	dnssec-validation no;
+
+	bindkeys-file "/etc/bind/bind.keys";
+
+	managed-keys-directory "/var/cache/bind";
+
+	pid-file "/run/named/named.pid";
+	session-keyfile "/run/named/session.key";
+
+	response-policy { zone "rpz"; };
+};
+
+
+# DNS Root Server
+zone "." IN {
+	type hint;
+	file "db.cache";
+};
+
+
+
+zone "rpz" IN {
+	type master;
+	file "db.rpz";
+	allow-query { none; };
+	allow-transfer { none; };
+};
+
+include "/etc/bind/zones.rfc1918";

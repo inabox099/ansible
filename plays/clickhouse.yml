@@ -1,0 +1,21 @@
+- name: Install Clickhous cluster
+  hosts: ch_cluster
+  gather_facts: true
+  become: true
+  vars:
+    clickhouse_users_custom:
+      - { name: "testuser",
+          password: "testuser",
+          networks: {"192.168.0.0/16"},
+          profile: "default",
+          quota: "default",
+          dbs: [testu1],
+          comment: "classic user with plain password"}
+    clickhouse_dbs_custom:
+      - { name: testu1 }
+    clickhouse_clusters:
+      ch_cluster_01:
+        shard_1:
+          - { host: "ch01", port: 9000 }
+  roles:
+    - ansible-clickhouse

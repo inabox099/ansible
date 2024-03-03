@@ -1,0 +1,10 @@
+---
+- name: Deploy Libvirt VMs
+  hosts: localhost
+  gather_facts: false
+  become: true  # To become root for tasks that require elevated privileges
+
+  tasks:
+    - name: Include libvirt-vm role
+      include_role:
+        name: libvirt-vm

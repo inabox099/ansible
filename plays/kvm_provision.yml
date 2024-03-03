@@ -1,0 +1,51 @@
+---
+
+- name: Deploys VM based on cloud image
+  hosts: localhost
+  gather_facts: false
+  become: true
+
+  vars:
+    pool_dir: "/var/lib/libvirt/images"
+    cleanup: false
+    net: default
+    ssh_pub_key: "/home/rifl/.ssh/id_rsa.pub"
+    dhcp_config_file: "/etc/dhcp/dhcpd.conf"
+    dhcp_service_name: "isc-dhcp-server"
+
+  tasks:
+    - name: Reserve DHCP entries
+      ansible.builtin.blockinfile:
+        path: "{{ dhcp_config_file }}"
+        block: |
+          {% for vm in vms %}
+          host {{ vm.name }} {
+            hardware ethernet {{ vm.mac_address }};
+            fixed-address {{ vm.ip_address }};
+          }
+          {% endfor %}
+      notify: Restart DHCP Service
+
+    - name: KVM Provision role
+      include_role:
+        name: kvm_provision
+      loop: "{{ vms }}"
+      loop_control:
+        loop_var: vm
+      vars:
+        libvirt_pool_dir: "{{ pool_dir }}"
+        vm_name: "{{ vm.name }}"
+        vm_vcpus: "{{ vm.vcpus }}"
+        vm_ram_mb: "{{ vm.ram_mb }}"
+        vm_net: "{{ vm.net }}"
+        cleanup_tmp: "{{ cleanup }}"
+        mac_address: "{{ vm.mac_address }}"
+        ssh_key: "{{ ssh_pub_key }}"
+
+  handlers:
+    - name: Restart DHCP Service
+      ansible.builtin.service:
+        name: "{{ dhcp_service_name }}"
+        state: reloaded
+
+  

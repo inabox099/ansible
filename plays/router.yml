@@ -1,0 +1,15 @@
+---
+- name: Hello world
+  hosts: routers
+  remote_user: csuser
+  gather_facts: Falses
+
+  tasks:
+    - name: Ensure frr is installed
+      ansible.builtin.yum:
+        name: 
+          - frr
+          - dhcp-relay
+        state: installed
+
+...

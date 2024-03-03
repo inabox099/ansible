@@ -1,0 +1,23 @@
+! zebra.conf example
+
+! This is a basic example of a zebra.conf file for FRRouting
+
+! Password for the zebra daemon to connect to the manager interface
+password zebra
+
+! Enable the Zebra daemon
+! You might need to adjust the interface names based on your system
+!
+! For Ethernet interfaces, use "ethX" where X is the interface number
+!
+! For example, "eth0" and "eth1"
+!
+! For more complex network setups, you may need to add more configuration
+!
+interface eth0
+ ip address 192.168.1.1/24
+ ipv6 address 2001:db8::1/64
+
+interface eth1
+ ip address 192.168.2.1/24
+ ipv6 address 2001:db8::2/64

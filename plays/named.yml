@@ -1,0 +1,52 @@
+---
+- name: Install and configure BIND9
+  hosts: pi01
+  become: true
+
+  tasks:
+    - name: Ensure requirements in place
+      ansible.builtin.package:
+        name:
+          - bind9
+          - bind9-dnsutils
+        state: present
+      become: true
+
+    - name: Restart DHCP Service
+      ansible.builtin.service:
+        name: named
+        state: started
+
+
+    - name: Configure named
+      ansible.builtin.template:
+        src: files/named.conf.j2
+        dest: /etc/bind/named.conf
+        owner: root
+        group: bind
+        mode: "0644"
+      notify: Reload named
+
+    - name: Creates directory
+      ansible.builtin.file:
+        path: /var/named
+        state: directory
+        owner: bind
+        group: bind
+        mode: "0777"
+
+    - name: Update root hints
+      ansible.builtin.get_url:
+        url: "ftp://ftp.rs.internic.net/domain/db.cache"
+        dest: "/var/named/db.cache"
+        owner: bind
+        group: bind
+        mode: "0644"
+      notify: Reload named
+
+
+  handlers:
+    - name: Reload named
+      ansible.builtin.command: |
+        rndc reload
+...

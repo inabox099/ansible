@@ -1,0 +1,11 @@
+---
+- name: Hello world
+  hosts: webservers
+  remote_user: root
+
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        var: ansible_facts
+
+...

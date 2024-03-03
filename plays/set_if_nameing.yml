@@ -1,0 +1,24 @@
+---
+
+- name: Configure GRUB Parameters
+  hosts: router1
+  become: true
+
+  tasks:
+    - name: Update GRUB_CMDLINE_LINUX in GRUB configuration
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"'
+      notify: Regenerate GRUB Config
+
+    - name: Reboot the system
+      ansible.builtin.command: "reboot"
+      async: 0
+      poll: 0
+      ignore_errors: true
+      become: true
+
+  handlers:
+    - name: Regenerate GRUB Config
+      ansible.builtin.command: 'grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg'

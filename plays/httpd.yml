@@ -1,0 +1,18 @@
+---
+- name: Hello world
+  hosts: webservers
+  remote_user: root
+
+  tasks:
+    - name: Ensure requirements in place
+      ansible.builtin.package:
+        name:
+          - httpd
+        state: present
+      become: true
+
+    - name: Restart DHCP Service
+      ansible.builtin.service:
+        name: httpd
+        state: started
+...

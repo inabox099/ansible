@@ -1,0 +1,83 @@
+---
+
+- name: Configure LVM on /dev/sda
+  hosts: pi01
+  become: true
+
+  tasks:
+    - name: Ensure requirements in place
+      ansible.builtin.package:
+        name:
+          - lvm2
+        state: present
+      become: true
+
+
+    - name: Create a new primary partition for LVM
+      community.general.parted:
+        device: /dev/sda
+        label: "gpt"
+        name: "home"
+        number: 1
+        flags: [lvm]
+        state: present
+
+    - name: Create a volume group on top of /dev/sda1
+      community.general.lvg:
+        vg: vg.services
+        pvs: /dev/sda1
+
+    - name: Create a logical volume of 1T
+      community.general.lvol:
+        vg: vg.services
+        lv: home
+        size: 1T
+
+    - name: Create a logical volume /var with 50G
+      community.general.lvol:
+        vg: vg.services
+        lv: var
+        size: 50G
+
+
+    - name: Create a logical volume /srv with 100G
+      community.general.lvol:
+        vg: vg.services
+        lv: srv
+        size: 100G
+
+    - name: Create a ext4 filesystem on device -home
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/mapper/vg.services-home
+
+    - name: Create a ext4 filesystem on device -var
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/mapper/vg.services-var
+
+    - name: Create a ext4 filesystem on device -srv
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/mapper/vg.services-srv
+
+    - name: Mount volume -home
+      ansible.posix.mount:
+        path: /home
+        src: /dev/mapper/vg.services-home
+        fstype: ext4
+        state: present
+
+    - name: Mount volume -var
+      ansible.posix.mount:
+        path: /var
+        src: /dev/mapper/vg.services-var
+        fstype: ext4
+        state: present
+
+    - name: Mount volume -srv
+      ansible.posix.mount:
+        path: /srv
+        src: /dev/mapper/vg.services-srv
+        fstype: ext4
+        state: present

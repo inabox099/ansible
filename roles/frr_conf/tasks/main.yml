@@ -1,0 +1,28 @@
+---
+# tasks file for frr_conf
+
+- name: Copy FRR Zebra configuration file
+  template:
+    src: zebra.conf.j2
+    dest: /etc/frr/zebra.conf
+    owner: frr
+    group: frr
+    mode: 0644
+  notify: Restart FRR
+  when: frr_zebra_enable
+
+- name: Copy FRR OSPF configuration file
+  template:
+    src: ospfd.conf.j2
+    dest: /etc/frr/ospfd.conf
+    owner: frr
+    group: frr
+    mode: 0644
+  notify: Restart FRR
+  when: frr_ospf_enable
+
+- name: Ensure FRR is started
+  systemd:
+    name: frr
+    state: started
+  when: frr_ospf_enable

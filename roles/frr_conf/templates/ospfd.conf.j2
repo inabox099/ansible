@@ -1,0 +1,10 @@
+! roles/frr_ospf/templates/frr_ospf.conf.j2
+
+hostname {{ ansible_hostname }}
+password frr
+
+router ospf
+   ospf router-id {{ frr_ospf_router_id }}
+   {% for network in frr_ospf_networks %}
+   network {{ network.name }} area 0
+   {% endfor %}
